@@ -1,21 +1,14 @@
 package bg.softuni.io.commands;
 
-import bg.softuni.contracts.ContentComparer;
-import bg.softuni.contracts.Database;
-import bg.softuni.contracts.DirectoryManager;
-import bg.softuni.contracts.Downloader;
+import bg.softuni.annotations.Alias;
 import bg.softuni.exceptions.InvalidInputException;
 import bg.softuni.io.OutputWriter;
 
+@Alias("help")
 public class GetHelpCommand extends Command {
 
-    public GetHelpCommand(String input,
-                          String[] data,
-                          ContentComparer tester,
-                          Database repository,
-                          Downloader downloadManager,
-                          DirectoryManager ioManager) {
-        super(input, data, tester, repository, downloadManager, ioManager);
+    public GetHelpCommand(String input, String[] data) {
+        super(input, data);
     }
 
     @Override
@@ -51,6 +44,8 @@ public class GetHelpCommand extends Command {
         helpBuilder.append("download file on new thread - downloadAsynch URL (saved in the current directory)")
                 .append(System.lineSeparator());
         helpBuilder.append("get help – help")
+                .append(System.lineSeparator());
+        helpBuilder.append("display data entities - display students/courses ascending/descending")
                 .append(System.lineSeparator());
         OutputWriter.writeMessage(helpBuilder.toString());
         OutputWriter.writeEmptyLine();

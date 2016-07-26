@@ -1,20 +1,21 @@
 package bg.softuni.io.commands;
 
+import bg.softuni.annotations.Alias;
+import bg.softuni.annotations.Inject;
 import bg.softuni.contracts.ContentComparer;
 import bg.softuni.contracts.Database;
 import bg.softuni.contracts.DirectoryManager;
 import bg.softuni.contracts.Downloader;
 import bg.softuni.exceptions.InvalidInputException;
 
+@Alias("ls")
 public class TraverseFoldersCommand extends Command {
 
-    public TraverseFoldersCommand(String input,
-                                  String[] data,
-                                  ContentComparer tester,
-                                  Database repository,
-                                  Downloader downloadManager,
-                                  DirectoryManager ioManager) {
-        super(input, data, tester, repository, downloadManager, ioManager);
+    @Inject
+    private DirectoryManager ioManager;
+
+    public TraverseFoldersCommand(String input, String[] data) {
+        super(input, data);
     }
 
     @Override
@@ -25,10 +26,10 @@ public class TraverseFoldersCommand extends Command {
         }
 
         if (data.length == 1) {
-            this.getIoManager().traverseDirectory(0);
+            this.ioManager.traverseDirectory(0);
             return;
         }
 
-        this.getIoManager().traverseDirectory(Integer.valueOf(data[1]));
+        this.ioManager.traverseDirectory(Integer.valueOf(data[1]));
     }
 }

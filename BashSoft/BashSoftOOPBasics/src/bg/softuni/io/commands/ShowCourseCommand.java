@@ -1,20 +1,18 @@
 package bg.softuni.io.commands;
 
-import bg.softuni.contracts.ContentComparer;
+import bg.softuni.annotations.Alias;
+import bg.softuni.annotations.Inject;
 import bg.softuni.contracts.Database;
-import bg.softuni.contracts.DirectoryManager;
-import bg.softuni.contracts.Downloader;
 import bg.softuni.exceptions.InvalidInputException;
 
+@Alias("show")
 public class ShowCourseCommand extends Command {
 
-    public ShowCourseCommand(String input,
-                             String[] data,
-                             ContentComparer tester,
-                             Database repository,
-                             Downloader downloadManager,
-                             DirectoryManager ioManager) {
-        super(input, data, tester, repository, downloadManager, ioManager);
+    @Inject
+    private Database repository;
+
+    public ShowCourseCommand(String input, String[] data) {
+        super(input, data);
     }
 
     @Override
@@ -26,13 +24,13 @@ public class ShowCourseCommand extends Command {
 
         if (data.length == 2) {
             String courseName = data[1];
-            this.getRepository().getStudentsByCourse(courseName);
+            this.repository.getStudentsByCourse(courseName);
             return;
         }
 
         String courseName = data[1];
         String userName = data[2];
-        this.getRepository().getStudentMarkInCourse(courseName, userName);
+        this.repository.getStudentMarkInCourse(courseName, userName);
 
     }
 }

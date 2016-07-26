@@ -1,13 +1,18 @@
 package bg.softuni.io;
 
+import bg.softuni.annotations.Alias;
+import bg.softuni.annotations.Inject;
 import bg.softuni.contracts.*;
-import bg.softuni.exceptions.InvalidInputException;
-import bg.softuni.io.commands.*;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 
 public class CommandInterpreter implements Interpreter {
 
+    private static final String COMMANDS_LOCATION = "src/bg/softuni/io/commands";
+    private static final String COMMANDS_PACKAGE = "bg.softuni.io.commands.";
     private ContentComparer tester;
     private Database repository;
     private Downloader downloadManager;
@@ -35,51 +40,65 @@ public class CommandInterpreter implements Interpreter {
     }
 
     private Executable parseCommand(String input, String[] data, String command) {
-        switch (command) {
-            case "open":
-                return new OpenFileCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            case "mkdir":
-                return new MakeDirectoryCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            case "ls":
-                return new TraverseFoldersCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            case "cmp":
-                return new CompareFilesCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            case "cdrel":
-                return new ChangeRelativePathCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            case "cdabs":
-                return new ChangeAbsolutePathCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            case "readdb":
-                return new ReadDatabaseCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            case "help":
-                return new GetHelpCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            case "show":
-                return new ShowCourseCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            case "filter":
-                return new PrintFilteredStudentsCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            case "order":
-                return new PrintOrderedStudentsCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            case "download":
-                return new DownloadFileCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            case "downloadasynch":
-                return new DownloadAsynchCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            case "dropdb":
-                return new DropDatabaseCommand(input, data, this.tester,
-                        this.repository, this.downloadManager, this.ioManager);
-            default:
-                throw new InvalidInputException(input);
+
+        File commandsFolder = new File(COMMANDS_LOCATION);
+        Executable executable = null;
+
+        for (File file : commandsFolder.listFiles()) {
+            if (!file.isFile() || !file.getName().endsWith(".java")) {
+                continue;
+            }
+
+            try {
+                String className = file.getName().substring(0, file.getName().lastIndexOf("."));
+
+                Class<Executable> exeClass = (Class<Executable>) Class.forName(COMMANDS_PACKAGE + className);
+
+                if (!exeClass.isAnnotationPresent(Alias.class)) {
+                    continue;
+                }
+
+                Alias alias = exeClass.getAnnotation(Alias.class);
+                String value = alias.value();
+
+                if (!value.equalsIgnoreCase(command)) {
+                    continue;
+                }
+
+                Constructor exeCtor = exeClass.getConstructor(String.class, String[].class);
+                executable = (Executable) exeCtor.newInstance(input, data);
+
+                this.injectDependancies(executable, exeClass);
+
+            } catch (ReflectiveOperationException rfe) {
+                rfe.printStackTrace();
+            }
+        }
+
+        return executable;
+    }
+
+    private void injectDependancies(Executable executable, Class<Executable> exeClass)
+            throws ReflectiveOperationException {
+
+        Field[] exeFields = exeClass.getDeclaredFields();
+        for (Field fieldToSet : exeFields) {
+            if (!fieldToSet.isAnnotationPresent(Inject.class)) {
+                continue;
+            }
+
+            fieldToSet.setAccessible(true);
+
+            Field[] theseFields = CommandInterpreter.class.getDeclaredFields();
+            for (Field theseField : theseFields) {
+
+                if (!theseField.getType().equals(fieldToSet)) {
+                    continue;
+                }
+
+                theseField.setAccessible(true);
+                fieldToSet.set(executable, theseField.get(this));
+            }
         }
     }
 }

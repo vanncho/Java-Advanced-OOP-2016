@@ -4,41 +4,13 @@ import bg.softuni.contracts.*;
 import bg.softuni.exceptions.InvalidInputException;
 
 public abstract class Command implements Executable {
+
     private String input;
     private String[] data;
-    private Database repository;
-    private ContentComparer tester;
-    private DirectoryManager ioManager;
-    private Downloader downloadManager;
 
-    protected Command(String input,
-                      String[] data,
-                      ContentComparer tester,
-                      Database repository,
-                      Downloader downloadManager,
-                      DirectoryManager ioManager) {
+    protected Command(String input, String[] data) {
         this.setInput(input);
         this.setData(data);
-        this.tester = tester;
-        this.repository = repository;
-        this.downloadManager = downloadManager;
-        this.ioManager = ioManager;
-    }
-
-    protected Database getRepository() {
-        return repository;
-    }
-
-    protected ContentComparer getTester() {
-        return tester;
-    }
-
-    protected DirectoryManager getIoManager() {
-        return ioManager;
-    }
-
-    protected Downloader getDownloadManager() {
-        return downloadManager;
     }
 
     protected String getInput() {

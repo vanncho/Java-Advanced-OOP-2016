@@ -1,20 +1,18 @@
 package bg.softuni.io.commands;
 
-import bg.softuni.contracts.ContentComparer;
+import bg.softuni.annotations.Alias;
+import bg.softuni.annotations.Inject;
 import bg.softuni.contracts.Database;
-import bg.softuni.contracts.DirectoryManager;
-import bg.softuni.contracts.Downloader;
 import bg.softuni.exceptions.InvalidInputException;
 
+@Alias("readdb")
 public class ReadDatabaseCommand extends Command {
 
-    public ReadDatabaseCommand(String input,
-                               String[] data,
-                               ContentComparer tester,
-                               Database repository,
-                               Downloader downloadManager,
-                               DirectoryManager ioManager) {
-        super(input, data, tester, repository, downloadManager, ioManager);
+    @Inject
+    private Database repository;
+
+    public ReadDatabaseCommand(String input, String[] data) {
+        super(input, data);
     }
 
     @Override
@@ -25,6 +23,6 @@ public class ReadDatabaseCommand extends Command {
         }
 
         String fileName = data[1];
-        this.getRepository().loadData(fileName);
+        this.repository.loadData(fileName);
     }
 }
